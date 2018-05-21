@@ -6,46 +6,60 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText etNote;
-    Button btnInsert, btnShowList;
-    RadioGroup rg;
+
+    EditText etTitle, etSingers, etYear;
+    RadioGroup rgStars;
+    RadioButton rb;
+    Button btnInsert, btnList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        etNote = (EditText) findViewById(R.id.editTextNote);
-        btnInsert = (Button) findViewById(R.id.buttonInsertNote);
-        btnShowList = (Button) findViewById(R.id.buttonShowList);
-        rg = (RadioGroup) findViewById(R.id.radioGroupStars);
+        etTitle = (EditText) findViewById(R.id.etTitle);
+        etSingers = (EditText) findViewById(R.id.etSingers);
+        etYear = (EditText) findViewById(R.id.etYear);
+        btnInsert = (Button) findViewById(R.id.btnInsert);
+        btnList = (Button) findViewById(R.id.btnList);
+        rgStars = (RadioGroup) findViewById(R.id.rgStars);
 
         btnInsert.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
+                String songTitle = etTitle.getText().toString();
+                String singers = etSingers.getText().toString();
+                String year = etYear.getText().toString();
+                int selectedButtonId = rgStars.getCheckedRadioButtonId();
+                rb = findViewById(selectedButtonId);
 
-                String note = etNote.getText().toString().trim();
-                if (note.length() == 0)
-                    return;
+                if (!songTitle.equals("") || !singers.equals("") || !year.equals("")) {
 
-                DBHelper dbh = new DBHelper(MainActivity.this);
-                if (dbh.isExistingNote(etNote.getText().toString())) {
-                    Toast.makeText(MainActivity.this, "Same note already exists", Toast.LENGTH_LONG).show();
+                    DBHelper db = new DBHelper(MainActivity.this);
+                    db.getWritableDatabase();
+                    db.insertSong(songTitle, singers
+                            , Integer.parseInt(year)
+                            , Integer.parseInt(rb.getText().toString()));
+
+                    Toast.makeText(MainActivity.this, "Song inserted", Toast.LENGTH_LONG).show();
+                    etTitle.setText("");
+                    etSingers.setText("");
+                    etYear.setText("");
+
+
                 } else {
-                    String data = etNote.getText().toString();
-                    int stars = getStars();
-                    dbh.insertNote(data, stars);
-                    Toast.makeText(MainActivity.this, "Inserted", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Song failed to insert", Toast.LENGTH_LONG).show();
                 }
             }
         });
 
-        btnShowList.setOnClickListener(new View.OnClickListener() {
+        btnList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 Intent i = new Intent(MainActivity.this, SecondActivity.class);
@@ -54,25 +68,4 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private int getStars() {
-        int stars = 1;
-        switch (rg.getCheckedRadioButtonId()) {
-            case R.id.radio1:
-                stars = 1;
-                break;
-            case R.id.radio2:
-                stars = 2;
-                break;
-            case R.id.radio3:
-                stars = 3;
-                break;
-            case R.id.radio4:
-                stars = 4;
-                break;
-            case R.id.radio5:
-                stars = 5;
-                break;
-        }
-        return stars;
-    }
 }
